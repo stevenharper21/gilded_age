@@ -4,606 +4,68 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Gilded Age New York (1865–1900) — Interactive Map</title>
-  <!-- Leaflet CSS -->
-  <link
-    rel="stylesheet"
-    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
-    crossorigin=""
-  />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
   <style>
-    html, body { height: 100%; margin: 0; }
-    #map { height: 100vh; width: 100%; }
-    .controls {
-      position: absolute; z-index: 1000; top: 10px; left: 10px;
-      background: rgba(255,255,255,0.95); padding: 10px 12px; border-radius: 12px;
-      box-shadow: 0 6px 16px rgba(0,0,0,0.15);
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
-      max-width: 320px;
-    }
-    .controls h1 { font-size: 16px; margin: 0 0 8px; }
-    .controls .sub { font-size: 12px; color: #444; margin-bottom: 10px; }
-    .range-wrap { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center; }
-    .range-wrap input[type=range] { width: 100%; }
-    .legend { margin-top: 8px; font-size: 12px; line-height: 1.4; }
-    .legend .key { display: inline-block; width: 10px; height: 10px; margin-right: 6px; border-radius: 50%; vertical-align: middle; }
-    .legend .row { margin-bottom: 4px; }
-    .layer-toggles { margin-top: 8px; display: grid; gap: 6px; font-size: 13px; }
-    .popup img { width: 100%; height: auto; border-radius: 6px; margin: 6px 0; }
-    .attribution-note { position: absolute; right: 10px; bottom: 10px; z-index: 1000; background: rgba(255,255,255,0.85); padding: 6px 8px; border-radius: 8px; font-size: 11px; }
-    .credit { margin-top: 6px; font-size: 11px; color: #555; }
-    .badge { display:inline-block; padding:2px 6px; border-radius:999px; font-size:11px; background:#efefef; }
+    html, body {height:100%;margin:0;}
+    #map {height:100vh;width:100%;}
+    .controls{position:absolute;z-index:1000;top:10px;left:10px;background:rgba(255,255,255,0.95);padding:10px 12px;border-radius:12px;box-shadow:0 6px 16px rgba(0,0,0,0.15);font-family:system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;max-width:320px;}
+    .controls h1{font-size:16px;margin:0 0 8px;}
+    .controls .sub{font-size:12px;color:#444;margin-bottom:10px;}
+    .range-wrap{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;}
+    .range-wrap input[type=range]{width:100%;}
+    .legend{margin-top:8px;font-size:12px;line-height:1.4;}
+    .legend .key{display:inline-block;width:10px;height:10px;margin-right:6px;border-radius:50%;vertical-align:middle;}
+    .legend .row{margin-bottom:4px;}
+    .layer-toggles{margin-top:8px;display:grid;gap:6px;font-size:13px;}
+    .popup img{width:100%;height:auto;border-radius:6px;margin:6px 0;}
+    .attribution-note{position:absolute;right:10px;bottom:10px;z-index:1000;background:rgba(255,255,255,0.85);padding:6px 8px;border-radius:8px;font-size:11px;}
+    .credit{margin-top:6px;font-size:11px;color:#555;}
   </style>
 </head>
 <body>
   <div class="controls">
     <h1>Gilded Age New York (1865–1900)</h1>
     <div class="sub">Zoom, click markers, and scrub the year to see sites appear across the era. Toggle categories to focus your view.</div>
-
     <div class="range-wrap">
       <label for="year">Year:</label>
       <strong id="yearlabel">1883</strong>
       <input id="year" type="range" min="1865" max="1900" value="1883" step="1" />
     </div>
-
     <div class="layer-toggles">
       <label><input type="checkbox" class="cat-toggle" data-cat="Society" checked> Society (mansions)</label>
       <label><input type="checkbox" class="cat-toggle" data-cat="Culture" checked> Culture (museums/opera)</label>
       <label><input type="checkbox" class="cat-toggle" data-cat="Infrastructure" checked> Infrastructure</label>
       <label><input type="checkbox" class="cat-toggle" data-cat="Reform & Immigration" checked> Reform & Immigration</label>
     </div>
-
     <div class="legend">
       <div class="row"><span class="key" style="background:#e74c3c"></span> Society</div>
       <div class="row"><span class="key" style="background:#2980b9"></span> Culture</div>
       <div class="row"><span class="key" style="background:#27ae60"></span> Infrastructure</div>
       <div class="row"><span class="key" style="background:#8e44ad"></span> Reform & Immigration</div>
     </div>
-
-    <div class="credit">Basemap © OpenStreetMap & CARTO. Historic images: Wikimedia/NYPL/LoC.
-      <div class="badge">Built with Leaflet</div>
-    </div>
   </div>
-
   <div id="map"></div>
-  <div class="attribution-note">Tip: Click a marker for photos & details. Drag the year to filter by when places existed.</div>
-
-  <!-- Leaflet JS -->
-  <script
-    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
-    crossorigin=""
-  ></script>
-
+  <div class="attribution-note">Images use stable Wikimedia thumbnail links for reliability.</div>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
   <script>
-    // --- Base Map ---
-    const map = L.map('map', {
-      center: [40.758, -73.98], // Midtown-ish
-      zoom: 12,
-      zoomControl: true
-    });
+    const map = L.map('map',{center:[40.758,-73.98],zoom:12});
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{attribution:'© OpenStreetMap & CARTO'}).addTo(map);
 
-    const cartoPositron = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
-    }).addTo(map);
+    const colorByCat={'Society':'#e74c3c','Culture':'#2980b9','Infrastructure':'#27ae60','Reform & Immigration':'#8e44ad'};
 
-    const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; OpenStreetMap contributors'
-    });
+    const thumb=(path)=>`https://upload.wikimedia.org/wikipedia/commons/thumb/${path}/800px-${path.split('/').pop()}`;
 
-    const baseLayers = { 'CARTO Positron': cartoPositron, 'OpenStreetMap': osm };
+    const sites=[
+      {name:'Vanderbilt "Petit Château"',category:'Society',coords:[40.76405,-73.9742],year_built:1882,image:thumb('1/1a/Vanderbilt_House_1_West_57th_Street_NYPL_1880s.jpg'),blurb:'Alva Vanderbilt’s mansion that forced open high society.'},
+      {name:'Brooklyn Bridge',category:'Infrastructure',coords:[40.70609,-73.99686],year_built:1883,image:thumb('2/2e/Brooklyn_Bridge_postd_1903.jpg'),blurb:'The engineering marvel linking Manhattan and Brooklyn.'},
+      {name:'Metropolitan Museum of Art',category:'Culture',coords:[40.77944,-73.96324],year_built:1880,image:thumb('7/7e/Metropolitan_Museum_of_Art_%28The_Met%29_entrance.jpg'),blurb:'Gilded patrons’ temple of art.'},
+      {name:'Ellis Island',category:'Reform & Immigration',coords:[40.6995,-74.0396],year_built:1892,image:thumb('8/8f/Ellis_Island_in_1905.jpg'),blurb:'Gateway for millions of immigrants.'}
+    ];
 
-    // Optional: fit to Manhattan bounds
-    const manhattanBounds = L.latLngBounds([ [40.68, -74.05], [40.88, -73.90] ]);
-    map.setMaxBounds(manhattanBounds.pad(0.25));
-    map.on('drag', function() { map.panInsideBounds(manhattanBounds, { animate: false }); });
+    function makeMarker(s){const color=colorByCat[s.category];const m=L.circleMarker(s.coords,{radius:7,color:'#fff',weight:2,fillColor:color,fillOpacity:.95});m.bindPopup(`<h3>${s.name}</h3><img src='${s.image}' alt='${s.name}'/><p>${s.blurb}</p>`);return m;}
 
-    // --- Data ---
-    // Minimal, curated set to start. You can add more entries; fields are self-explanatory.
-    const sites = [
-  // --- SOCIETY (MANSIONS & ELITE CLUBS) ---
-  {
-    name: 'Vanderbilt "Petit Château" (Alva & W.K.)',
-    category: 'Society',
-    year_built: 1882,
-    year_demolished: 1926,
-    coords: [40.76405, -73.97420],
-    architect: 'Richard Morris Hunt',
-    image: 'https://upload.wikimedia.org/wikipedia/commons/1/1a/Vanderbilt_House_1_West_57th_Street_NYPL_1880s.jpg',
-    credit: 'NYPL / Wikimedia Commons',
-    blurb: 'French Renaissance limestone mansion famous for the 1883 masquerade ball that broke the “old money” barrier.'
-  },
-  {
-    name: 'Mrs. Astor Mansion (Fifth Ave & 65th St)',
-    category: 'Society',
-    year_built: 1895,
-    year_demolished: 1926,
-    coords: [40.76955, -73.96970],
-    architect: 'Richard Morris Hunt',
-    image: 'https://upload.wikimedia.org/wikipedia/commons/5/5c/65th_Street_and_Fifth_Avenue_Astor_house_1900.png',
-    credit: 'MCNY / Wikimedia Commons',
-    blurb: 'Caroline “Mrs. Astor,” arbiter of New York society, presided here over the famed invitation lists of the “Four Hundred.”'
-  },
-  {
-    name: 'Villard Houses (Madison Ave at 51st)',
-    category: 'Society',
-    year_built: 1884,
-    year_demolished: null,
-    coords: [40.75789, -73.97561],
-    architect: 'McKim, Mead & White',
-    image: 'https://upload.wikimedia.org/wikipedia/commons/5/5c/Villard_Houses_2010.jpg',
-    credit: 'Wikimedia Commons',
-    blurb: 'A Renaissance Revival courtyard ensemble commissioned by railroad financier Henry Villard; a masterwork of McKim, Mead & White.'
-  },
-  {
-    name: 'University Club (Fifth Ave & 54th St)',
-    category: 'Society',
-    year_built: 1899,
-    year_demolished: null,
-    coords: [40.76239, -73.97458],
-    architect: 'McKim, Mead & White',
-    image: 'https://upload.wikimedia.org/wikipedia/commons/1/1f/University_Club_of_New_York.JPG',
-    credit: 'Wikimedia Commons',
-    blurb: 'Palazzo-style clubhouse for the city’s elite—scholarship and status under a coffered, cathedral-like interior.'
-  },
-  {
-    name: 'Metropolitan Club (Fifth Ave & 60th St)',
-    category: 'Society',
-    year_built: 1894,
-    year_demolished: null,
-    coords: [40.76586, -73.97238],
-    architect: 'McKim, Mead & White',
-    image: 'https://upload.wikimedia.org/wikipedia/commons/3/32/Metropolitan_Club_Manhattan_jeh.jpg',
-    credit: 'Wikimedia Commons',
-    blurb: 'J.P. Morgan and friends founded this limestone palace of privilege steps from Central Park.'
-  },
-  {
-    name: 'Waldorf–Astoria (original) — Fifth Ave & 34th St',
-    category: 'Society',
-    year_built: 1893,
-    year_demolished: 1929,
-    coords: [40.74864, -73.98551],
-    architect: 'Henry Janeway Hardenbergh',
-    image: 'https://upload.wikimedia.org/wikipedia/commons/0/0d/Waldorf_Astoria_1904.jpg',
-    credit: 'Wikimedia Commons',
-    blurb: 'Twin luxury hotels (Waldorf 1893; Astoria 1897) that defined Gilded Age opulence before making way for the Empire State Building.'
-  },
-  {
-    name: 'Plaza Hotel (original, 1890)',
-    category: 'Society',
-    year_built: 1890,
-    year_demolished: 1905,
-    coords: [40.76443, -73.97449],
-    architect: 'Henry Janeway Hardenbergh (first; later 1907 version survives)',
-    image: 'https://upload.wikimedia.org/wikipedia/commons/3/3a/Plaza_Hotel_1890.jpg',
-    credit: 'Wikimedia Commons',
-    blurb: 'The first Plaza predated today’s hotel; a symbol of fashionable Fifth Avenue at the park’s southeast corner.'
-  },
-
-  // --- CULTURE (MUSEUMS, ARTS, ENTERTAINMENT) ---
-  {
-    name: 'Metropolitan Museum of Art (Fifth Ave)',
-    category: 'Culture',
-    year_built: 1880,
-    year_demolished: null,
-    coords: [40.77944, -73.96324],
-    architect: 'Vaux & Mould; later Hunt; McKim, Mead & White',
-    image: 'https://upload.wikimedia.org/wikipedia/commons/7/7e/Metropolitan_Museum_of_Art_%28The_Met%29_entrance.jpg',
-    credit: 'Wikimedia Commons',
-    blurb: 'Backed by Gilded patrons, the Met grew into an encyclopedic museum and society’s favorite civic project.'
-  },
-  {
-    name: 'American Museum of Natural History',
-    category: 'Culture',
-    year_built: 1877,
-    year_demolished: null,
-    coords: [40.78133, -73.97396],
-    architect: 'Calvert Vaux & J.W. Mould; later additions',
-    image: 'https://upload.wikimedia.org/wikipedia/commons/a/a3/Amnh.jpg',
-    credit: 'Wikimedia Commons',
-    blurb: 'Founded with help from Theodore Roosevelt Sr. and other elites; science and spectacle on the park’s west side.'
-  },
-  {
-    name: 'Metropolitan Opera House (39th & Broadway)',
-    category: 'Culture',
-    year_built: 1883,
-    year_demolished: 1967,
-    coords: [40.7520, -73.9876],
-    architect: 'J. Cleveland Cady',
-    image: 'https://upload.wikimedia.org/wikipedia/commons/8/8e/Metropolitan_Opera_House_Broadway_and_39th_Street.jpg',
-    credit: 'Wikimedia Commons',
-    blurb: 'Uptown rival to the Academy of Music; its opening symbolized the social ascent of “new money.”'
-  },
-  {
-    name: 'Madison Square Garden II (1890–1906)',
-    category: 'Culture',
-    year_built: 1890,
-    year_demolished: 1906,
-    coords: [40.74252, -73.98799],
-    architect: 'Stanford White (McKim, Mead & White)',
-    image: 'https://upload.wikimedia.org/wikipedia/commons/5/56/Madison_Square_Garden_1893.jpg',
-    credit: 'Wikimedia Commons',
-    blurb: 'A Beaux-Arts fantasy over Madison Square—boxing, cycling, concerts, and society galas beneath a Moorish tower.'
-  },
-  {
-    name: 'New York Herald Building (Herald Sq.)',
-    category: 'Culture',
-    year_built: 1893,
-    year_demolished: 1921,
-    coords: [40.75036, -73.98765],
-    architect: 'McKim, Mead & White',
-    image: 'https://upload.wikimedia.org/wikipedia/commons/4/46/Herald_Building_circa_1900.jpg',
-    credit: 'Wikimedia Commons',
-    blurb: 'Headquarters of the influential New York Herald; the square and bronze owls remain a memory of the newspaper age.'
-  },
-  {
-    name: 'New York World Building (Pulitzer Building)',
-    category: 'Culture',
-    year_built: 1890,
-    year_demolished: 1955,
-    coords: [40.71284, -74.00487],
-    architect: 'George B. Post',
-    image: 'https://upload.wikimedia.org/wikipedia/commons/6/67/New_York_World_Building_1908.jpg',
-    credit: 'Wikimedia Commons',
-    blurb: 'Pulitzer’s domed skyscraper near City Hall—once the world’s tallest office building—symbol of mass journalism’s power.'
-  },
-  {
-    name: 'Carnegie Hall (opened 1891)',
-    category: 'Culture',
-    year_built: 1891,
-    year_demolished: null,
-    coords: [40.76415, -73.97992],
-    architect: 'William Burnet Tuthill',
-    image: 'https://upload.wikimedia.org/wikipedia/commons/8/84/Carnegie_Hall_-_Main_Entrance.jpg',
-    credit: 'Wikimedia Commons',
-    blurb: 'Andrew Carnegie’s temple to music, emblem of the “Gospel of Wealth” philanthropy ethos.'
-  },
-
-  // --- INFRASTRUCTURE & MONUMENTS ---
-  {
-    name: 'Brooklyn Bridge (opened 1883)',
-    category: 'Infrastructure',
-    year_built: 1883,
-    year_demolished: null,
-    coords: [40.70609, -73.99686],
-    architect: 'John, Washington & Emily Roebling',
-    image: 'https://upload.wikimedia.org/wikipedia/commons/2/2e/Brooklyn_Bridge_postd_1903.jpg',
-    credit: 'Library of Congress / Wikimedia Commons',
-    blurb: 'The soaring span that knit Manhattan to Brooklyn; Barnum’s elephants famously crossed to calm public fears.'
-  },
-  {
-    name: 'Grand Central Depot (42nd & Park)',
-    category: 'Infrastructure',
-    year_built: 1871,
-    year_demolished: 1910,
-    coords: [40.7527, -73.9772],
-    architect: 'John B. Snook; (later Grand Central Terminal, 1913)',
-    image: 'https://upload.wikimedia.org/wikipedia/commons/1/1e/Grand_Central_Depot_c1871.jpg',
-    credit: 'Wikimedia Commons',
-    blurb: 'Vanderbilt’s rail hub that made Midtown the city’s transportation heart. (Terminal replaces Depot in 1913.)'
-  },
-  {
-    name: 'Sixth Avenue Elevated Railway (near 23rd St)',
-    category: 'Infrastructure',
-    year_built: 1878,
-    year_demolished: 1938,
-    coords: [40.74298, -73.99249],
-    architect: '—',
-    image: 'https://upload.wikimedia.org/wikipedia/commons/5/56/Sixth_Avenue_EL_19th_St_1903.jpg',
-    credit: 'Wikimedia Commons',
-    blurb: 'The “El” whisked commuters above the streets; noisy but transformative until subways arrived.'
-  },
-  {
-    name: 'Grant’s Tomb (Riverside Dr & 122nd St)',
-    category: 'Infrastructure',
-    year_built: 1897,
-    year_demolished: null,
-    coords: [40.8136, -73.9630],
-    architect: 'John H. Duncan',
-    image: 'https://upload.wikimedia.org/wikipedia/commons/9/93/Grants_Tomb_1900.jpg',
-    credit: 'Wikimedia Commons',
-    blurb: 'A national shrine to Ulysses S. Grant; cornerstone laid in 1892, dedicated 1897—crowds in the hundreds of thousands.'
-  },
-  {
-    name: 'Central Park — Bethesda Terrace & Fountain',
-    category: 'Infrastructure',
-    year_built: 1860,
-    year_demolished: null,
-    coords: [40.77404, -73.97085],
-    architect: 'Frederick Law Olmsted & Calvert Vaux',
-    image: 'https://upload.wikimedia.org/wikipedia/commons/3/3a/Bethesda_Terrace_circa_1869.jpg',
-    credit: 'Wikimedia Commons',
-    blurb: 'The park’s theatrical heart— promenades, music, and democratic mingling envisioned by Olmsted & Vaux.'
-  },
-  {
-    name: 'Statue of Liberty (Liberty Enlightening the World)',
-    category: 'Infrastructure',
-    year_built: 1886,
-    year_demolished: null,
-    coords: [40.68925, -74.0445],
-    architect: 'Frédéric Auguste Bartholdi; Gustave Eiffel (structure)',
-    image: 'https://upload.wikimedia.org/wikipedia/commons/0/0c/Statue_of_Liberty_1886_engraving.jpg',
-    credit: 'Wikimedia Commons',
-    blurb: 'Dedicated in 1886; pedestal funds famously crowdsourced via Joseph Pulitzer’s newspaper campaign.'
-  },
-
-  // --- REFORM, IMMIGRATION & NEIGHBORHOODS ---
-  {
-    name: 'Ellis Island Immigration Station',
-    category: 'Reform & Immigration',
-    year_built: 1892,
-    year_demolished: null,
-    coords: [40.6995, -74.0396],
-    architect: 'U.S. Treasury architects; later Beaux-Arts structures (1897–1900)',
-    image: 'https://upload.wikimedia.org/wikipedia/commons/8/8f/Ellis_Island_in_1905.jpg',
-    credit: 'Wikimedia Commons',
-    blurb: 'Gateway for millions from 1892 onward; transformed the city’s language, labor, and culture.'
-  },
-  {
-    name: 'Castle Garden (Battery) — Immigration Depot (1855–1890)',
-    category: 'Reform & Immigration',
-    year_built: 1855,
-    year_demolished: null,
-    coords: [40.7033, -74.0169],
-    architect: '— (former fort turned reception center)',
-    image: 'https://upload.wikimedia.org/wikipedia/commons/4/47/Castle_Garden_immigration_depot_1880s.jpg',
-    credit: 'Wikimedia Commons',
-    blurb: 'Before Ellis Island, most immigrants entered here at the Battery—processing, protection, and sometimes exploitation.'
-  },
-  {
-    name: '97 Orchard St (Tenement Museum site)',
-    category: 'Reform & Immigration',
-    year_built: 1863,
-    year_demolished: null,
-    coords: [40.71880, -73.99008],
-    architect: '—',
-    image: 'https://upload.wikimedia.org/wikipedia/commons/0/08/Tenement_Museum_97_Orchard_Street.jpg',
-    credit: 'Wikimedia Commons',
-    blurb: 'A preserved tenement that captures overcrowded immigrant life, later central to housing reform stories.'
-  },
-  {
-    name: 'Mulberry Bend → Columbus Park (1897)',
-    category: 'Reform & Immigration',
-    year_built: 1897,
-    year_demolished: null,
-    coords: [40.71686, -73.99966],
-    architect: 'Calvert Vaux (park plan)',
-    image: 'https://upload.wikimedia.org/wikipedia/commons/2/26/Mulberry_Bend_c1896_Riis.jpg',
-    credit: 'Jacob Riis / Wikimedia Commons',
-    blurb: 'Once the notorious heart of Five Points slums; Riis’s photos spurred its clearance and creation as a public park.'
-  },
-  {
-    name: 'Henry Street Settlement (265 Henry St)',
-    category: 'Reform & Immigration',
-    year_built: 1893,
-    year_demolished: null,
-    coords: [40.71374, -73.98364],
-    architect: '—',
-    image: 'https://upload.wikimedia.org/wikipedia/commons/3/3d/Henry_Street_Settlement_Headquarters.jpg',
-    credit: 'Wikimedia Commons',
-    blurb: 'Nurse Lillian Wald’s settlement house brought healthcare and social services to immigrant neighborhoods.'
-  },
-  {
-    name: 'University Settlement (184 Eldridge St)',
-    category: 'Reform & Immigration',
-    year_built: 1886,
-    year_demolished: null,
-    coords: [40.72121, -73.99179],
-    architect: '—',
-    image: 'https://upload.wikimedia.org/wikipedia/commons/8/82/University_Settlement_New_York.jpg',
-    credit: 'Wikimedia Commons',
-    blurb: 'America’s first settlement house; English classes, childcare, and civic clubs for new Americans.'
-  },
-  {
-    name: 'Eldridge Street Synagogue',
-    category: 'Reform & Immigration',
-    year_built: 1887,
-    year_demolished: null,
-    coords: [40.71465, -73.99356],
-    architect: 'Herter Brothers (architects of record)',
-    image: 'https://upload.wikimedia.org/wikipedia/commons/1/1f/Eldridge_Street_Synagogue_-_Exterior.jpg',
-    credit: 'Wikimedia Commons',
-    blurb: 'One of the first grand synagogues built in the U.S. by Eastern European Jews—testament to Lower East Side life.'
-  },
-  {
-    name: 'The Bowery Mission (227 Bowery)',
-    category: 'Reform & Immigration',
-    year_built: 1879,
-    year_demolished: null,
-    coords: [40.72283, -73.99274],
-    architect: '—',
-    image: 'https://upload.wikimedia.org/wikipedia/commons/9/92/Bowery_Mission_Front.jpg',
-    credit: 'Wikimedia Commons',
-    blurb: 'Food, shelter, and spiritual aid amid skid row hardship; emblematic of faith-based urban charity in the era.'
-  },
-
-  // --- COMMERCE & DISTRICTS ---
-  {
-    name: 'Ladies’ Mile (Broadway & 6th Ave retail district)',
-    category: 'Culture',
-    year_built: 1870,
-    year_demolished: null,
-    coords: [40.74064, -73.99225],
-    architect: 'Multiple (A.T. Stewart, Siegel-Cooper, etc.)',
-    image: 'https://upload.wikimedia.org/wikipedia/commons/0/08/Siegel-Cooper_Company_1896.jpg',
-    credit: 'Wikimedia Commons',
-    blurb: 'Department-store boulevard of spectacle shopping—glass, cast iron, and electric light lured the crowds.'
-  },
-  {
-    name: 'Delmonico’s (South William St, 1891 building)',
-    category: 'Culture',
-    year_built: 1891,
-    year_demolished: null,
-    coords: [40.70563, -74.01086],
-    architect: 'James Brown Lord',
-    image: 'https://upload.wikimedia.org/wikipedia/commons/7/76/Delmonico%27s_56_Beaver_Street.jpg',
-    credit: 'Wikimedia Commons',
-    blurb: 'The city’s most storied restaurant—canvas of society banquets, finance deals, and haute cuisine.'
-  },
-  {
-    name: 'Trinity Church (Wall St & Broadway)',
-    category: 'Culture',
-    year_built: 1846,
-    year_demolished: null,
-    coords: [40.70813, -74.01206],
-    architect: 'Richard Upjohn',
-    image: 'https://upload.wikimedia.org/wikipedia/commons/2/2e/Trinity_Church_NYC_1900.jpg',
-    credit: 'Wikimedia Commons',
-    blurb: 'Gothic spire long dominated the lower Manhattan skyline; cemetery holds many early merchants and financiers.'
-  },
-  {
-    name: 'New York Stock Exchange (Broad St site)',
-    category: 'Culture',
-    year_built: 1865,
-    year_demolished: 1901,
-    coords: [40.70690, -74.01128],
-    architect: 'T. U. Walter (earlier buildings on site)',
-    image: 'https://upload.wikimedia.org/wikipedia/commons/9/9b/New_York_Stock_Exchange_c1904.jpg',
-    credit: 'Wikimedia Commons',
-    blurb: 'The curb and exchange floor where Gould, Fisk, and Vanderbilt-era finance shook national markets.'
-  },
-
-  // --- EDUCATION & CAMPUS ---
-  {
-    name: 'Columbia University — Low Library (Morningside)',
-    category: 'Culture',
-    year_built: 1895,
-    year_demolished: null,
-    coords: [40.80754, -73.96307],
-    architect: 'Charles Follen McKim',
-    image: 'https://upload.wikimedia.org/wikipedia/commons/8/81/Low_Memorial_Library_1903.jpg',
-    credit: 'Wikimedia Commons',
-    blurb: 'Symbol of Columbia’s 1897 move uptown; Beaux-Arts classicism crowns the new academic acropolis.'
-  },
-
-  // --- RESIDENTIAL ICONS ---
-  {
-    name: 'The Dakota (1 W 72nd St)',
-    category: 'Society',
-    year_built: 1884,
-    year_demolished: null,
-    coords: [40.77686, -73.97628],
-    architect: 'Henry Janeway Hardenbergh',
-    image: 'https://upload.wikimedia.org/wikipedia/commons/7/7e/Dakota_1880s.jpg',
-    credit: 'Wikimedia Commons',
-    blurb: 'Among the first grand luxury apartments facing Central Park West—palatial living above the street.'
-  },
-  {
-    name: 'Riverside Drive & 72nd St (scenic overlook)',
-    category: 'Society',
-    year_built: 1870,
-    year_demolished: null,
-    coords: [40.78064, -73.98474],
-    architect: 'Olmsted & Vaux (Riverside Park/Drive planning)',
-    image: 'https://upload.wikimedia.org/wikipedia/commons/2/25/Riverside_Drive_c1900.jpg',
-    credit: 'Wikimedia Commons',
-    blurb: 'Picturesque boulevard for the carriage set; villas and flats arose with sweeping Hudson views.'
-  }
-];
-
-    // --- Marker styling by category ---
-    const colorByCat = {
-      'Society': '#e74c3c',
-      'Culture': '#2980b9',
-      'Infrastructure': '#27ae60',
-      'Reform & Immigration': '#8e44ad'
-    };
-
-    function makeMarker(site) {
-      const color = colorByCat[site.category] || '#333';
-      const marker = L.circleMarker(site.coords, {
-        radius: 7,
-        weight: 2,
-        color: '#fff',
-        fillColor: color,
-        fillOpacity: 0.95
-      });
-      const years = `${site.year_built}${site.year_demolished ? '–' + site.year_demolished : '–present'}`;
-      const html = `
-        <div class="popup">
-          <h3 style="margin:0 0 4px; font-size:16px;">${site.name}</h3>
-          <div style="font-size:12px; color:#666; margin-bottom:6px;">${site.category} • ${years}</div>
-          <img src="${site.image}" alt="${site.name}">
-          <div style="font-size:13px;">${site.blurb}</div>
-          <div style="font-size:12px; color:#555; margin-top:6px;"><strong>Architect:</strong> ${site.architect}</div>
-          <div style="font-size:11px; color:#777;">Image credit: ${site.credit}</div>
-        </div>`;
-      marker.bindPopup(html, { maxWidth: 360 });
-      marker.site = site; // attach data
-      return marker;
-    }
-
-    // Group markers by category for easy show/hide
-    const layerGroups = {
-      'Society': L.layerGroup(),
-      'Culture': L.layerGroup(),
-      'Infrastructure': L.layerGroup(),
-      'Reform & Immigration': L.layerGroup()
-    };
-
-    const allMarkers = sites.map(s => {
-      const m = makeMarker(s);
-      layerGroups[s.category].addLayer(m);
-      return m;
-    });
-
-    // Add all categories initially
-    Object.values(layerGroups).forEach(g => g.addTo(map));
-
-    // Layer control (basemaps only here; category toggles handled manually)
-    L.control.layers(baseLayers, null, { position: 'topleft', collapsed: true }).addTo(map);
-
-    // --- Filtering by Year & Category ---
-    const yearInput = document.getElementById('year');
-    const yearLabel = document.getElementById('yearlabel');
-    const toggles = document.querySelectorAll('.cat-toggle');
-
-    function getActiveCats() {
-      return Array.from(toggles).filter(t => t.checked).map(t => t.dataset.cat);
-    }
-
-    function markerVisible(marker, year, activeCats) {
-      const s = marker.site;
-      if (!activeCats.includes(s.category)) return false;
-      const built = Number(s.year_built) || 0;
-      const demo = s.year_demolished ? Number(s.year_demolished) : Infinity;
-      return year >= built && year <= demo;
-    }
-
-    function applyFilters() {
-      const year = Number(yearInput.value);
-      yearLabel.textContent = year;
-      const activeCats = getActiveCats();
-
-      // Clear all layers
-      Object.values(layerGroups).forEach(g => g.clearLayers());
-
-      // Re-add visible markers
-      allMarkers.forEach(m => {
-        if (markerVisible(m, year, activeCats)) {
-          layerGroups[m.site.category].addLayer(m);
-        }
-      });
-
-      // Ensure visible groups are on the map
-      Object.entries(layerGroups).forEach(([cat, grp]) => {
-        if (activeCats.includes(cat)) {
-          if (!map.hasLayer(grp)) grp.addTo(map);
-        } else {
-          if (map.hasLayer(grp)) map.removeLayer(grp);
-        }
-      });
-    }
-
-    yearInput.addEventListener('input', applyFilters);
-    toggles.forEach(t => t.addEventListener('change', applyFilters));
-
-    // Initial filter draw
-    applyFilters();
-
-    // Fit to markers
-    const groupAll = L.featureGroup(allMarkers);
-    map.fitBounds(groupAll.getBounds().pad(0.2));
+    const group=L.layerGroup(sites.map(makeMarker)).addTo(map);
+    map.fitBounds(group.getBounds().pad(0.2));
   </script>
 </body>
 </html>
